@@ -1,49 +1,73 @@
 import React, { useEffect, useState } from 'react';
+import { getDogsByIds, getLocations, getMatchDog, searchDogs } from '../api';
+import DogCard from '../components/DogCard';
+import { Dog } from '@/types/dog.type';
+import { Location } from '@/types/location.type';
+import MatchCard from '../components/MatchCard';
+import Button from '../components/Button';
 
 const DogIndex = () => {
-  const [dogIds, setDogIds] = useState([]);
-
-  const BASE_URL = 'https://frontend-take-home-service.fetch.com';
-  const DOG_SEARCH = '/dogs/search';
+  const [dogs, setDogs] = useState([]);
+  const [zipCodeLocationMap, setZipCodeLocationMap] = useState({});
+  const [matchDog, setMatchDog] = useState(null);
 
   const fetchDogs = async () => {
-    const response = await fetch(BASE_URL + DOG_SEARCH, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-    });
-    console.log(response);
+    try {
+      const response = await searchDogs();
+      const data = await response.json();
 
-    const reader = response?.body?.getReader();
-    const decoder = new TextDecoder(); // To convert binary to text
+      const ids = data?.resultIds ?? [];
+      const dogResponse = await getDogsByIds(ids);
+      const dogData = await dogResponse.json();
+      const zipCodes = dogData.map((dog: Dog) => dog.zip_code);
+      const locationsResponse = await getLocations(zipCodes);
+      const locations = await locationsResponse.json();
+      const locationMap: object = {};
+      locations.forEach((location: Location) => {
+        if (!location?.zip_code) {
+          return;
+        }
+        const zipCode = location.zip_code;
+        locationMap[zipCode] = location;
+      });
 
-    let result = '';
-    let done = false;
-
-    while (!done) {
-      const { value, done: streamDone } = await reader.read();
-      if (value) {
-        result += decoder.decode(value, { stream: true }); // Append chunk
-      }
-      done = streamDone;
+      setZipCodeLocationMap(locationMap);
+      setDogs(dogData);
+    } catch (error) {
+      console.log('ERROR', error);
     }
-
-    console.log('Full Response:', result);
-    setDogIds(JSON.parse(result)?.resultIds ?? []);
   };
 
   useEffect(() => {
     fetchDogs();
   }, []);
 
+  const handleFindMatch = async () => {
+    try {
+      const ids = dogs.map((dog: Dog) => dog.id);
+      console.log(ids);
+      const matchResponse = await getMatchDog(ids);
+      const matchResult = await matchResponse.json();
+      const matchId = matchResult.match;
+      console.log(matchId);
+      const match = dogs.find((dog: Dog) => dog.id === matchId);
+      console.log(match);
+      setMatchDog(match);
+    } catch (error) {
+      console.log('ERROR', error);
+    }
+  };
+
   return (
     <>
-      {dogIds.map((id) => (
-        <h2 key={id}>{id}</h2>
+      <Button onClick={handleFindMatch} label={'Find Match'} />
+      <Button onClick={fetchDogs} label={'Search'} />
+      {matchDog && <MatchCard dog={matchDog} location={zipCodeLocationMap[matchDog.zip_code]} />}
+      {dogs.map((dog: Dog) => (
+        <div key={dog.id} className="m-3">
+          <DogCard name={dog.name} imageUrl={dog.img} location={zipCodeLocationMap[dog.zip_code]} />
+        </div>
       ))}
-      <button onClick={fetchDogs}>try again</button>
     </>
   );
 };

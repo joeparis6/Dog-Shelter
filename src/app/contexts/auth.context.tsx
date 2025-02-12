@@ -6,10 +6,10 @@ type Props = {
 
 type AuthContextType = {
   isAuthorized: boolean;
-  setIsAuthorized: Dispatch<SetStateAction<boolean>> | null;
+  setIsAuthorized?: Dispatch<SetStateAction<boolean>>;
 };
 
-export const AuthContext = createContext<AuthContextType>({ isAuthorized: false, setIsAuthorized: null });
+export const AuthContext = createContext<AuthContextType>({ isAuthorized: false });
 
 export const AuthProvider = (props: Props) => {
   const { children } = props;

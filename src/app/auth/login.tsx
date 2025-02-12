@@ -11,14 +11,12 @@ const Login = () => {
   const { setIsAuthorized } = useContext(AuthContext);
 
   const [loginInfo, setLoginInfo] = useState<Login>({ name: '', email: '' });
-  console.log(loginInfo);
 
   const handleLogin = async () => {
     try {
       const loginResult = await login(loginInfo);
       if (loginResult.ok) {
         setIsAuthorized(true);
-        console.log('ok');
       }
     } catch (error) {
       console.log(error);
