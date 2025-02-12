@@ -11,7 +11,7 @@ const DogIndex = () => {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [breeds, setBreeds] = useState<string[]>([]);
   const [zipCodeLocationMap, setZipCodeLocationMap] = useState({});
-  const [matchDog, setMatchDog] = useState(null);
+  const [matchDog, setMatchDog] = useState<Dog | undefined>();
   const { setIsAuthorized } = useContext(AuthContext);
 
   const fetchDogs = async () => {
@@ -44,7 +44,7 @@ const DogIndex = () => {
   const fetchBreeds = async () => {
     const breedResponse = await getBreeds();
     const breedResult = await breedResponse.json();
-    console.log(breedResult);
+    setBreeds(breedResult);
   };
 
   useEffect(() => {
@@ -55,13 +55,10 @@ const DogIndex = () => {
   const handleFindMatch = async () => {
     try {
       const ids = dogs.map((dog: Dog) => dog.id);
-      console.log(ids);
       const matchResponse = await getMatchDog(ids);
       const matchResult = await matchResponse.json();
       const matchId = matchResult.match;
-      console.log(matchId);
       const match = dogs.find((dog: Dog) => dog.id === matchId);
-      console.log(match);
       setMatchDog(match);
     } catch (error) {
       console.log('ERROR', error);
