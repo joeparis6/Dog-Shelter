@@ -1,5 +1,5 @@
-import { Dog } from '@/types/dog.type';
-import { Location } from '@/types/location.type';
+import { Dog } from '@/types/Dog.type';
+import { Location } from '@/types/Location.type';
 import React from 'react';
 
 type Props = {

@@ -1,20 +1,34 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { getBreeds, getDogsByIds, getLocations, getMatchDog, logOut, searchDogs } from '../api';
+import { getBreeds, getDogsByIds, getLocations, getMatchDog, logOut, searchDogs, searchLocations } from '../api';
 import DogCard from '../components/DogCard';
-import { Dog } from '@/types/dog.type';
-import { Location } from '@/types/location.type';
+import { Dog } from '@/types/Dog.type';
+import { Location } from '@/types/Location.type';
 import MatchCard from '../components/MatchCard';
 import Button from '../components/Button';
 import { AuthContext } from '../contexts/auth.context';
+import Dropdown from '../components/Select';
+import NumericInput from '../components/NumericInput';
+import TextInput from '../components/TextInput';
+import { stateAndTerritoryCodes } from '../data/StateCodes';
+
+enum LocationFilterMethods {
+  CITY_STATE = 'City and State',
+  ZIP_CODE = 'Zip Code',
+  COORDINATES = 'Coordinates',
+  NONE = '',
+}
 
 const DogIndex = () => {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [breeds, setBreeds] = useState<string[]>([]);
   const [zipCodeLocationMap, setZipCodeLocationMap] = useState({});
   const [matchDog, setMatchDog] = useState<Dog | undefined>();
+  const [locationFilterMethod, setLocationFilterMethod] = useState<LocationFilterMethods>(LocationFilterMethods.NONE);
+  const [searchData, setSearchData] = useState({});
   const { setIsAuthorized } = useContext(AuthContext);
+  const searchMethods = ['City and State', 'Zip Code', 'Coordinates'];
 
-  const fetchDogs = async () => {
+  const fetchDogs = async (providedLocations?: Location) => {
     try {
       const response = await searchDogs();
       const data = await response.json();
@@ -65,6 +79,20 @@ const DogIndex = () => {
     }
   };
 
+  const searchForLocations = async () => {
+    try {
+      const response = await searchLocations({});
+      const locationSearchResult = await response.json();
+      console.log(locationSearchResult);
+    } catch (error) {
+      console.log('ERROR', error);
+    }
+  };
+
+  const handleApplyFilters = () => {
+    console.log(searchData);
+  };
+
   const handleLogout = async () => {
     try {
       await logOut();
@@ -74,11 +102,82 @@ const DogIndex = () => {
     }
   };
 
+  const LocationFilters = (method: string) => {
+    switch (method) {
+      case LocationFilterMethods.ZIP_CODE:
+        return (
+          <div>
+            <NumericInput
+              onChange={(value: number | string) =>
+                setSearchData((prevData) => {
+                  return { ...prevData, zipCode: value };
+                })
+              }
+              value={searchData?.zipCode}
+              min={10000}
+              max={99999}
+              placeholder="Zip Code"
+            />
+          </div>
+        );
+      case LocationFilterMethods.COORDINATES:
+        return (
+          <div>
+            <NumericInput onChange={() => {}} value={undefined} min={10000} max={99999} placeholder="Latitude" />
+            <NumericInput onChange={() => {}} value={undefined} min={10000} max={99999} placeholder="Longitude" />
+          </div>
+        );
+      case LocationFilterMethods.CITY_STATE:
+        return (
+          <div>
+            <TextInput
+              value={searchData?.city ?? ''}
+              onChange={(value) =>
+                setSearchData((prevData) => {
+                  return { ...prevData, city: value };
+                })
+              }
+              placeholder="City"
+            />
+            <Dropdown
+              options={stateAndTerritoryCodes}
+              placeHolder="State"
+              onSelect={(value) =>
+                setSearchData((prevData) => {
+                  return { ...prevData, state: value };
+                })
+              }
+            />
+          </div>
+        );
+      default:
+        return <></>;
+    }
+  };
+
   return (
     <>
       <Button onClick={handleLogout} label={'Logout'} />
       <Button onClick={handleFindMatch} label={'Find Match'} />
       <Button onClick={fetchDogs} label={'Search'} />
+      <div className="max-w-lg mx-auto flex-row">
+        <Dropdown
+          placeHolder={'Select Breed'}
+          options={breeds}
+          onSelect={(value) =>
+            setSearchData((prevData) => {
+              return { ...prevData, breed: value };
+            })
+          }
+        />
+        <Dropdown
+          placeHolder={'Select Location Filter'}
+          options={searchMethods}
+          onSelect={(value: string) => setLocationFilterMethod(value)}
+        />
+        {LocationFilters(locationFilterMethod)}
+        <Button onClick={handleApplyFilters} label={'Apply'} />
+      </div>
       {matchDog && <MatchCard dog={matchDog} location={zipCodeLocationMap[matchDog.zip_code]} />}
       {dogs &&
         dogs.map((dog: Dog) => (

@@ -1,3 +1,5 @@
+import { SearchLocationRequest } from '@/types/Requests.type';
+
 const BASE_URL = 'https://frontend-take-home-service.fetch.com';
 const AUTHENTICATE = '/auth/login';
 const LOG_OUT = '/auth/logout';
@@ -82,12 +84,12 @@ export const getLocations = async (zipCodes: string[]) => {
   });
 };
 
-export const searchLocations = async (search: string) => {
+export const searchLocations = async (locationSearch: SearchLocationRequest) => {
   const url = BASE_URL + SEARCH_LOCATIONS;
   return await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify([]),
+    body: JSON.stringify(locationSearch),
   });
 };
