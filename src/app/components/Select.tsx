@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 type Props = {
   placeHolder?: string;
-  options: string[];
+  options: { label?: string; value: string }[];
   onSelect: (value: string) => void;
 };
 
@@ -11,6 +11,7 @@ const Dropdown = (props: Props) => {
   const [selected, setSelected] = useState('');
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    console.log(event.target.value);
     const value = event.target.value;
     setSelected(value);
     onSelect(value);
@@ -22,8 +23,8 @@ const Dropdown = (props: Props) => {
         {placeHolder ?? 'Select an option'}
       </option>
       {options.map((option, index) => (
-        <option key={index} value={option}>
-          {option}
+        <option key={index} value={option.value}>
+          {option?.label ?? option.value}
         </option>
       ))}
     </select>

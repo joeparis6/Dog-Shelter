@@ -23,11 +23,11 @@ const DogCard = (props: Props) => {
   };
 
   return (
-    <div className="max-w-xl mx-auto bg-red-700 rounded-lg overflow-hidden p-1">
-      <div className="max-w-xl mx-auto bg-red-700 border-2 rounded-lg border-solid border-white divide-white m-1 flex justify-between p-2 mx-1">
+    <div className="max-w-3xl mx-auto overflow-hidden p-1">
+      <div className="max-w-3xl bg-green-900 rounded-sm flex justify-between p-1">
         <div className="mx-auto">
-          <h1 className="text-white">{name}</h1>
-          <h4 className="text-white">{`${dog.age} year${age > 1 ? 's' : ''} old`}</h4>
+          <h1 className="font-serif text-yellow-300 text-3xl">{name}</h1>
+          <h4 className="text-white">{`${dog.age} year${age !== 1 ? 's' : ''} old`}</h4>
           <h4 className="text-white">{breed}</h4>
           <h4 className="text-white">{getLocationString()}</h4>
         </div>

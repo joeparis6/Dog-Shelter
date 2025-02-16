@@ -20,7 +20,7 @@ export const login = async ({ name, email }) => {
     credentials: 'include',
     body: JSON.stringify({
       name: 'John Doe',
-      email: 'duvjgspizlzczgrwcy@poplk.com',
+      email: 'pgtwurgekigywlvmnb@ytnhy.com',
     }),
   });
 };
@@ -41,20 +41,33 @@ export const getBreeds = async () => {
   });
 };
 
-export const searchDogs = async (size?: number, from?: number) => {
-  const searchParams = new URLSearchParams({
-    size: size?.toString() ?? '25',
-    from: from?.toString() ?? '0',
-  }).toString();
+export const searchDogs = async (
+  breeds?: string[],
+  zipCodes?: string[],
+  ageMin?: number,
+  ageMax?: number,
+  size?: number,
+  from?: number,
+  sort?: string,
+) => {
+  const searchParams = new URLSearchParams();
+  if (breeds?.[0]) breeds.forEach((breed) => searchParams.append('breeds', breed));
+  if (zipCodes?.[0]) zipCodes.forEach((zip) => searchParams.append('zipCodes', zip));
+  if (ageMin !== undefined) searchParams.append('ageMin', ageMin.toString());
+  if (ageMax !== undefined) searchParams.append('ageMax', ageMax.toString());
+  if (size !== undefined) searchParams.append('size', size.toString());
+  if (from !== undefined) searchParams.append('from', from.toString());
+  if (sort) searchParams.append('sort', sort);
+  console.log(searchParams);
   const url = BASE_URL + DOG_SEARCH + '?' + searchParams;
+  console.log(url);
   return await fetch(url, {
     method: 'GET',
     credentials: 'include',
   });
 };
 
-export const getDogsByIds = async (ids: string[]) => {
-  console.log(ids);
+export const getDogsByIds = async (ids: string[] = []) => {
   const url = BASE_URL + DOGS;
   return await fetch(url, {
     method: 'POST',
