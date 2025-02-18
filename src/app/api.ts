@@ -20,7 +20,7 @@ export const login = async ({ name, email }) => {
     credentials: 'include',
     body: JSON.stringify({
       name: 'John Doe',
-      email: 'pgtwurgekigywlvmnb@ytnhy.com',
+      email: 'ezchpllpkshuaxrypl@nbmbb.com',
     }),
   });
 };
@@ -58,7 +58,6 @@ export const searchDogs = async (
   if (size !== undefined) searchParams.append('size', size.toString());
   if (from !== undefined) searchParams.append('from', from.toString());
   if (sort) searchParams.append('sort', sort);
-  console.log(searchParams);
   const url = BASE_URL + DOG_SEARCH + '?' + searchParams;
   console.log(url);
   return await fetch(url, {
@@ -97,12 +96,14 @@ export const getLocations = async (zipCodes: string[]) => {
   });
 };
 
-export const searchLocations = async (locationSearch: SearchLocationRequest) => {
+export const searchLocations = async (city: string, states?: string[], geoBoundingBox?: any) => {
+  const requestBody = { city, states, geoBoundingBox };
+  console.log(requestBody);
   const url = BASE_URL + SEARCH_LOCATIONS;
   return await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify(locationSearch),
+    body: JSON.stringify(requestBody),
   });
 };

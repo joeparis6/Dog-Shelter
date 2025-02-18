@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { login } from '../api';
 import { AuthContext } from '../contexts/auth.context';
+import Button from '../components/Button';
 
 type Login = {
   name: string;
@@ -25,8 +26,7 @@ const Login = () => {
 
   return (
     <>
-      <div>
-        <h1>Login</h1>
+      <div className="max-w-md mx-auto ">
         <label htmlFor="name">Name</label>
         <input
           type="text"
@@ -41,9 +41,8 @@ const Login = () => {
           name="email"
           onChange={(e) => setLoginInfo({ ...loginInfo, email: e.target.value })}
         />
+        <Button onClick={handleLogin} label="Log In" />
       </div>
-      <button onClick={handleLogin}>Log In</button>
-      <></>
     </>
   );
 };

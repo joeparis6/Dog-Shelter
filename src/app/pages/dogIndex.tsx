@@ -26,7 +26,7 @@ const DogIndex = () => {
   const [matchDog, setMatchDog] = useState<Dog | undefined>();
   const [locationFilterMethod, setLocationFilterMethod] = useState<LocationFilterMethods>(LocationFilterMethods.NONE);
   const [searchData, setSearchData] = useState({});
-  const [locaitonSearchData] = useState({});
+  const [locationSearchData, setLocationSearchData] = useState({});
   const [paginationData, setPaginationData] = useState<{ from: number; size: number }>({ from: 0, size: 25 });
   const { setIsAuthorized } = useContext(AuthContext);
   const searchMethods = ['City and State', 'Zip Code', 'Coordinates'];
@@ -41,6 +41,10 @@ const DogIndex = () => {
 
   const fetchDogs = async (providedLocations?: Location[]) => {
     try {
+      const { city, states, geoBoundingBox } = locationSearchData;
+      const searchLocationsResponse = await searchLocations(city, states, geoBoundingBox);
+      const searchLocationsResult = await searchLocationsResponse.json();
+      console.log(searchLocationsResult);
       console.log(searchData);
       const { zipCode, breed, ageMin, ageMax, sort } = searchData;
       const { from, size } = paginationData;
@@ -100,6 +104,7 @@ const DogIndex = () => {
 
   const handleApplyFilters = async () => {
     console.log(searchData);
+    console.log(locationSearchData);
     await fetchDogs();
   };
 
@@ -121,7 +126,7 @@ const DogIndex = () => {
           <div>
             <NumericInput
               onChange={(value: number | string) =>
-                setSearchData((prevData) => {
+                setLocationSearchData((prevData) => {
                   return { ...prevData, zipCode: value };
                 })
               }
@@ -143,20 +148,22 @@ const DogIndex = () => {
         return (
           <div>
             <TextInput
-              value={searchData?.city ?? ''}
+              value={locationSearchData?.city ?? ''}
               onChange={(value) =>
-                setSearchData((prevData) => {
+                setLocationSearchData((prevData) => {
                   return { ...prevData, city: value, zipCode: null };
                 })
               }
               placeholder="City"
             />
             <Dropdown
-              options={stateAndTerritoryCodes}
+              options={stateAndTerritoryCodes.map((state: string) => {
+                return { value: state };
+              })}
               placeHolder="State"
               onSelect={(value) =>
-                setSearchData((prevData) => {
-                  return { ...prevData, state: value };
+                setLocationSearchData((prevData) => {
+                  return { ...prevData, states: [value] };
                 })
               }
             />
@@ -169,10 +176,13 @@ const DogIndex = () => {
 
   return (
     <>
-      <Button onClick={handleLogout} label={'Logout'} />
-      <Button onClick={handleFindMatch} label={'Feeling Lucky'} />
-      <Button onClick={fetchDogs} label={'Search'} />
-      <div className="max-w-3xl mx-auto flex-row">
+      <div className="flex flex-row">
+        <Button onClick={handleLogout} label={'Logout'} />
+        <Button onClick={handleFindMatch} label={'Feeling Lucky'} />
+        <Button onClick={fetchDogs} label={'Search'} />
+      </div>
+
+      <div className="max-w-3xl mx-auto">
         <Dropdown
           placeHolder={'Select Breed'}
           options={breeds.map((breed) => {
