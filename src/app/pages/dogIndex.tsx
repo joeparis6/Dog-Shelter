@@ -108,6 +108,12 @@ const DogIndex = () => {
     await fetchDogs();
   };
 
+  const handleReset = async () => {
+    setSearchData({});
+    setLocationSearchData({});
+    await fetchDogs();
+  };
+
   const handleLogout = async () => {
     try {
       await logOut();
@@ -232,6 +238,7 @@ const DogIndex = () => {
 
         {LocationFilters(locationFilterMethod)}
         <Button onClick={handleApplyFilters} label={'Apply'} />
+        <Button onClick={handleReset} label={'Reset'} />
       </div>
       {matchDog && <MatchCard dog={matchDog} location={zipCodeLocationMap[matchDog.zip_code]} />}
       {dogs && (
