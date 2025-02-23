@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { login } from '../api';
 import { AuthContext } from '../contexts/auth.context';
 import Button from '../components/Button';
+import TextInput from '../components/TextInput';
 
 type Login = {
   name: string;
@@ -16,7 +17,7 @@ const Login = () => {
   const handleLogin = async () => {
     try {
       const loginResult = await login(loginInfo);
-      if (loginResult.ok) {
+      if (loginResult.ok && setIsAuthorized) {
         setIsAuthorized(true);
       }
     } catch (error) {
@@ -25,25 +26,21 @@ const Login = () => {
   };
 
   return (
-    <>
-      <div className="max-w-md mx-auto ">
-        <label htmlFor="name">Name</label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          onChange={(e) => setLoginInfo({ ...loginInfo, name: e.target.value })}
+    <div className=" grid place-items-center">
+      <div className="max-w-xl bg-green-900 flex-column">
+        <TextInput
+          value={loginInfo?.name ?? ''}
+          label="Name"
+          onChange={(nameInput) => setLoginInfo({ ...loginInfo, name: nameInput })}
         />
-        <label htmlFor="email">Email:</label>
-        <input
-          type="text"
-          id="email"
-          name="email"
-          onChange={(e) => setLoginInfo({ ...loginInfo, email: e.target.value })}
+        <TextInput
+          value={loginInfo?.email ?? ''}
+          label="Email"
+          onChange={(emailInput) => setLoginInfo({ ...loginInfo, name: emailInput })}
         />
         <Button onClick={handleLogin} label="Log In" />
       </div>
-    </>
+    </div>
   );
 };
 

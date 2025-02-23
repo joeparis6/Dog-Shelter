@@ -14,7 +14,6 @@ import PaginationControl from '../components/PaginationControl';
 
 enum LocationFilterMethods {
   CITY_STATE = 'City and State',
-  ZIP_CODE = 'Zip Code',
   COORDINATES = 'Coordinates',
   NONE = '',
 }
@@ -29,7 +28,7 @@ const DogIndex = () => {
   const [locationSearchData, setLocationSearchData] = useState({});
   const [paginationData, setPaginationData] = useState<{ from: number; size: number }>({ from: 0, size: 25 });
   const { setIsAuthorized } = useContext(AuthContext);
-  const searchMethods = ['City and State', 'Zip Code', 'Coordinates'];
+  const searchMethods = ['City and State', 'Coordinates'];
   const sortMethods = [
     { label: 'Breed (A-Z)', value: 'breed:asc' },
     { label: 'Breed (Z-A)', value: 'breed:desc' },
@@ -39,24 +38,34 @@ const DogIndex = () => {
     { label: 'Youngest to Oldest', value: 'age:asc' },
   ];
 
-  const fetchDogs = async (providedLocations?: Location[]) => {
+  const fetchDogs = async () => {
     try {
+      // get locations if filters provides
+      console.log(locationSearchData);
       const { city, states, geoBoundingBox } = locationSearchData;
-      const searchLocationsResponse = await searchLocations(city, states, geoBoundingBox);
-      const searchLocationsResult = await searchLocationsResponse.json();
-      console.log(searchLocationsResult);
-      console.log(searchData);
-      const { zipCode, breed, ageMin, ageMax, sort } = searchData;
+      let locationZipCodes = [];
+      if (city || states || geoBoundingBox) {
+        const searchLocationsResponse = await searchLocations(city, states, geoBoundingBox, 10000);
+        const searchLocationsResult = await searchLocationsResponse.json();
+        locationZipCodes = searchLocationsResult.results.map((location: Location) => location.zip_code);
+      }
+      // get Dogs
+      const { breed, ageMin, ageMax, sort } = searchData;
       const { from, size } = paginationData;
-      const response = await searchDogs([breed], [zipCode], ageMin, ageMax, size, from, sort);
+      const response = await searchDogs([breed], locationZipCodes ?? null, ageMin, ageMax, size, from, sort);
       const { resultIds, next, prev } = await response.json();
-
       const dogResponse = await getDogsByIds(resultIds);
-      const dogData = await dogResponse.json();
-      const zipCodes = dogData.map((dog: Dog) => dog.zip_code);
+      const allDogs = await dogResponse.json();
+      const filteredDogs = allDogs;
+
+      // get zip codes for all dogs
+      const zipCodes = filteredDogs.map((dog: Dog) => dog.zip_code);
+
+      // get locations of all dogs
       const locationsResponse = await getLocations(zipCodes);
       const locations = await locationsResponse.json();
       const locationMap: object = {};
+      // create mapping of zip codes to location
       locations.forEach((location: Location) => {
         if (!location?.zip_code) {
           return;
@@ -66,7 +75,7 @@ const DogIndex = () => {
       });
 
       setZipCodeLocationMap(locationMap);
-      setDogs(dogData);
+      setDogs(filteredDogs);
     } catch (error) {
       console.log('ERROR', error);
     }
@@ -81,7 +90,6 @@ const DogIndex = () => {
   const fetchLocations = async () => {
     const locationsResponse = await searchLocations({});
     const { results, total } = await locationsResponse.json();
-    console.timeLog(results, total);
   };
 
   useEffect(() => {
@@ -103,8 +111,6 @@ const DogIndex = () => {
   };
 
   const handleApplyFilters = async () => {
-    console.log(searchData);
-    console.log(locationSearchData);
     await fetchDogs();
   };
 
@@ -127,22 +133,6 @@ const DogIndex = () => {
 
   const LocationFilters = (method: string) => {
     switch (method) {
-      case LocationFilterMethods.ZIP_CODE:
-        return (
-          <div>
-            <NumericInput
-              onChange={(value: number | string) =>
-                setLocationSearchData((prevData) => {
-                  return { ...prevData, zipCode: value };
-                })
-              }
-              value={searchData?.zipCode}
-              min={10000}
-              max={99999}
-              placeholder="Zip Code"
-            />
-          </div>
-        );
       case LocationFilterMethods.COORDINATES:
         return (
           <div>
@@ -157,7 +147,7 @@ const DogIndex = () => {
               value={locationSearchData?.city ?? ''}
               onChange={(value) =>
                 setLocationSearchData((prevData) => {
-                  return { ...prevData, city: value, zipCode: null };
+                  return { ...prevData, city: value };
                 })
               }
               placeholder="City"

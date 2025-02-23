@@ -59,7 +59,6 @@ export const searchDogs = async (
   if (from !== undefined) searchParams.append('from', from.toString());
   if (sort) searchParams.append('sort', sort);
   const url = BASE_URL + DOG_SEARCH + '?' + searchParams;
-  console.log(url);
   return await fetch(url, {
     method: 'GET',
     credentials: 'include',
@@ -96,9 +95,14 @@ export const getLocations = async (zipCodes: string[]) => {
   });
 };
 
-export const searchLocations = async (city: string, states?: string[], geoBoundingBox?: any) => {
-  const requestBody = { city, states, geoBoundingBox };
-  console.log(requestBody);
+export const searchLocations = async (
+  city: string,
+  states?: string[],
+  geoBoundingBox?: any,
+  size?: number,
+  from?: number,
+) => {
+  const requestBody = { city, states, geoBoundingBox, size, from };
   const url = BASE_URL + SEARCH_LOCATIONS;
   return await fetch(url, {
     method: 'POST',
